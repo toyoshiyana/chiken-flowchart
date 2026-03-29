@@ -226,7 +226,7 @@
 <div id="panel-sclc" class="tab-panel">
   <div class="note-bar teal">
     <span>ℹ️</span>
-    <div>対象試験: <strong>TSUBAKI試験 1件</strong>（ADRIATICリアルワールドレジストリ）。限局型小細胞肺がん（LD-SCLC）に対する化学放射線療法後のデュルバルマブ（イミフィンジ）維持療法について、実地臨床での有効性・安全性を評価する多施設共同前向き観察研究。AstraZeneca・日本呼吸器学会・日本肺癌学会共同主催。</div>
+    <div>対象試験: <strong>LSSCLC研究 1件</strong>（長崎大学主導・多施設前向き観察研究）。限局型小細胞肺がん（LD-SCLC）に対する化学放射線療法後のデュルバルマブ（イミフィンジ）維持療法の有効性・安全性・QOLへの影響を評価する。研究代表者: 長崎大学病院 谷口寛和先生。</div>
   </div>
   <div class="diagram-wrap" id="content-sclc"><div class="loading">⏳ 読み込み中...</div></div>
 </div>
@@ -457,7 +457,7 @@
       Q2 -- "NO（未完了または進行）" --> NG2["CRT 未完了\nまたは 病勢進行\n→ 対象外"]:::NG
 
       Q3{"PS 0〜2\nかつ 重篤な自己免疫疾患\n・活動性感染症なし？"}:::DEC
-      Q3 -- "YES" --> TSUBAKI["✅【臨床試験】TSUBAKI 試験\n━━━━━━━━━━━━━━━━━━━━━━━\n💊 デュルバルマブ（イミフィンジ）\n　 1500mg Q4W（最大 24ヶ月）\n📋 ADRIATICリアルワールドレジストリ\n　 LD-SCLC / CRT後 維持療法\n🏥 約40施設・225例登録予定\n👤 担当: 海老先生"]:::STUDY
+      Q3 -- "YES" --> LSSCLC["✅【臨床試験】LSSCLC研究\n━━━━━━━━━━━━━━━━━━━━━━━\n💊 デュルバルマブ（イミフィンジ）\n　 CRT後の維持療法\n📋 長崎大学主導 多施設前向き観察研究\n　 有効性・安全性・QOL評価\n👤 担当: 海老先生"]:::STUDY
       Q3 -- "NO（除外基準に該当）" --> NG3["除外基準に該当\n（担当医に確認）"]:::NG`
   };
 
