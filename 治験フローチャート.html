@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+  <title>呼吸器内科 治験フローチャート（樹形図）</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Hiragino Sans', 'Yu Gothic UI', 'Meiryo', sans-serif;
+      background: #f0f2f5;
+      min-height: 100vh;
+      color: #263238;
+      font-size: 16px;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    /* ── ヘッダー ── */
+    .page-header {
+      background: linear-gradient(135deg, #1a237e 0%, #283593 60%, #303f9f 100%);
+      color: white;
+      padding: 18px 20px 14px;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.25);
+    }
+    .page-header h1 { font-size: 17px; font-weight: bold; letter-spacing: 0.3px; line-height: 1.4; }
+    .page-header .meta { font-size: 11px; opacity: 0.8; margin-top: 6px; line-height: 1.7; }
+
+    /* ── タブバー ── */
+    .tab-bar {
+      display: flex;
+      gap: 4px;
+      padding: 10px 12px 0;
+      background: #e8eaf6;
+      border-bottom: 3px solid #c5cae9;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .tab-bar::-webkit-scrollbar { display: none; }
+    .tab-btn {
+      padding: 11px 18px 10px;
+      border: 2px solid transparent;
+      border-bottom: none;
+      border-radius: 8px 8px 0 0;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+      font-family: inherit;
+      background: #c5cae9;
+      color: #5c6bc0;
+      transition: all 0.15s;
+      white-space: nowrap;
+      min-height: 48px;
+      display: inline-flex;
+      align-items: center;
+    }
+    .tab-btn:hover:not(.active) { background: #e8eaf6; }
+    .tab-btn.active {
+      background: white;
+      border-color: currentColor;
+      border-bottom: 3px solid white;
+      margin-bottom: -3px;
+    }
+    .tab-btn.bronch { --c: #2e7d32; }
+    .tab-btn.copd   { --c: #1565c0; }
+    .tab-btn.viral  { --c: #6a1b9a; }
+    .tab-btn.nsclc  { --c: #b71c1c; }
+    .tab-btn.sas    { --c: #e65100; }
+    .tab-btn.bronch.active { color: #2e7d32; border-color: #2e7d32; }
+    .tab-btn.copd.active   { color: #1565c0; border-color: #1565c0; }
+    .tab-btn.viral.active  { color: #6a1b9a; border-color: #6a1b9a; }
+    .tab-btn.nsclc.active  { color: #b71c1c; border-color: #b71c1c; }
+    .tab-btn.sas.active    { color: #e65100; border-color: #e65100; }
+
+    /* ── コンテンツ ── */
+    .tab-panel {
+      display: none;
+      background: white;
+      padding: 16px 14px 32px;
+      min-height: 480px;
+    }
+    .tab-panel.active { display: block; }
+
+    /* 注意書き */
+    .note-bar {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 12px 14px;
+      border-radius: 8px;
+      margin-bottom: 14px;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+    .note-bar.blue   { background: #e3f2fd; border-left: 4px solid #1976d2; color: #0d47a1; }
+    .note-bar.orange { background: #fff3e0; border-left: 4px solid #f57c00; color: #bf360c; }
+    .note-bar.red    { background: #ffebee; border-left: 4px solid #c62828; color: #b71c1c; }
+    .note-bar.purple { background: #f3e5f5; border-left: 4px solid #7b1fa2; color: #4a148c; }
+    .note-bar.green  { background: #e8f5e9; border-left: 4px solid #388e3c; color: #1b5e20; }
+
+    /* ダイアグラムコンテナ */
+    .diagram-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 4px 0 12px;
+    }
+    .diagram-wrap svg {
+      display: block;
+      margin: 0 auto;
+      min-width: 640px;   /* モバイルでも潰れずスクロール可 */
+      height: auto;
+    }
+    /* スクロールヒント */
+    .scroll-hint {
+      text-align: center;
+      font-size: 11px;
+      color: #b0bec5;
+      padding: 2px 0 10px;
+      letter-spacing: 0.3px;
+    }
+
+    /* ローディング */
+    .loading {
+      text-align: center;
+      padding: 60px 0;
+      color: #9e9e9e;
+      font-size: 15px;
+    }
+
+    /* フッター */
+    .page-footer {
+      text-align: center;
+      padding: 14px;
+      font-size: 11px;
+      color: #90a4ae;
+      border-top: 1px solid #eceff1;
+      background: white;
+    }
+
+    /* ── モバイル調整 ── */
+    @media (max-width: 480px) {
+      .page-header { padding: 14px 14px 12px; }
+      .page-header h1 { font-size: 15px; }
+      .page-header .meta { font-size: 10px; }
+      .tab-btn { font-size: 13px; padding: 10px 13px; }
+      .tab-bar { gap: 3px; padding: 8px 8px 0; }
+      .note-bar { font-size: 12.5px; padding: 10px 12px; }
+      .tab-panel { padding: 12px 10px 28px; }
+    }
+
+    @media print {
+      .tab-bar { display: none; }
+      .tab-panel { display: block !important; page-break-after: always; border-top: 2px solid #ccc; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<div class="page-header">
+  <h1>🫁 呼吸器内科　進行中治験・臨床試験　疾患別フローチャート（患者選択ツール）</h1>
+  <div class="meta">
+    2026年3月更新　｜　終了済み試験（ICoN-1 / GALAXIES LUNG / BEACON-IPF / INS-416 / RESOLUTE）は除外　｜　詳細・登録はプロトコル確認の上、各担当者へご相談ください
+  </div>
+</div>
+
+<!-- ===== TAB BAR ===== -->
+<div class="tab-bar">
+  <button class="tab-btn nsclc active"   onclick="switchTab('nsclc')" >🔴 肺がん（NSCLC）</button>
+  <button class="tab-btn copd"           onclick="switchTab('copd')"  >🔵 COPD</button>
+  <button class="tab-btn bronch"         onclick="switchTab('bronch')">🟢 気管支拡張症</button>
+  <button class="tab-btn viral"          onclick="switchTab('viral')" >🟣 感染症（肺炎）</button>
+  <button class="tab-btn sas"            onclick="switchTab('sas')"   >🟠 睡眠時無呼吸症候群</button>
+</div>
+
+<!-- ===== PANELS ===== -->
+
+<!-- 気管支拡張症 -->
+<div id="panel-bronch" class="tab-panel">
+  <div class="note-bar green">
+    <span>ℹ️</span>
+    <div>対象試験: <strong>AIRTIVITY試験（BI 1291583 / BI社）＋ GSK223977試験（GSK3862995B / GSK社）の2件</strong>。CT確認済みの非嚢胞性線維症気管支拡張症患者が対象。増悪歴・QOL-B・BMI・FEV1 などで条件が分岐します。</div>
+  </div>
+  <div class="diagram-wrap" id="content-bronch"><div class="loading">⏳ 読み込み中...</div></div>
+</div>
+
+<!-- COPD -->
+<div id="panel-copd" class="tab-panel">
+  <div class="note-bar blue">
+    <span>⚠️</span>
+    <div>COPD試験は<strong>4試験が並列して登録中</strong>（RESOLUTE試験は終了・除外済み）。各基準は独立して評価し、複数の試験に同時に該当する場合があります。該当する全試験について担当医・CRCとご相談ください。</div>
+  </div>
+  <div class="diagram-wrap" id="content-copd"><div class="loading">⏳ 読み込み中...</div></div>
+</div>
+
+<!-- 感染症 -->
+<div id="panel-viral" class="tab-panel">
+  <div class="note-bar purple">
+    <span>ℹ️</span>
+    <div>対象試験: <strong>TILIA試験 1件</strong>。呼吸不全を伴うウイルス性肺感染症患者を対象に、抗IL-33抗体 Tozorakimab のプラセボ対照試験。悪性腫瘍・自己免疫疾患は除外。</div>
+  </div>
+  <div class="diagram-wrap" id="content-viral"><div class="loading">⏳ 読み込み中...</div></div>
+</div>
+
+<!-- NSCLC -->
+<div id="panel-nsclc" class="tab-panel active">
+  <div class="diagram-wrap" id="content-nsclc"><div class="loading">⏳ 読み込み中...</div></div>
+</div>
+
+<!-- SAS -->
+<div id="panel-sas" class="tab-panel">
+  <div class="note-bar orange">
+    <span>💤</span>
+    <div><strong>睡眠時無呼吸症候群（SAS）3試験</strong>（AMGEN / Eli Lilly / Novo Nordisk 各1試験）。共通条件: SAS確定診断・糖尿病なし・BMI ≥ 27。<strong>肥満SAS患者は吉村Dr紹介スキームで対応</strong>。なお1社は CPAP 使用有無で別アームを設けています。</div>
+  </div>
+  <div class="diagram-wrap" id="content-sas"><div class="loading">⏳ 読み込み中...</div></div>
+</div>
+
+<!-- ===== FOOTER ===== -->
+<div class="page-footer">
+  2026年3月作成
+</div>
+
+<!-- ===== SCRIPT ===== -->
+<script>
+  mermaid.initialize({
+    startOnLoad: false,
+    theme: 'base',
+    themeVariables: {
+      primaryColor: '#f5f5f5',
+      primaryBorderColor: '#9e9e9e',
+      primaryTextColor: '#263238',
+      lineColor: '#607d8b',
+      secondaryColor: '#eceff1',
+      tertiaryColor: '#f5f5f5',
+      fontSize: '15px'
+    },
+    flowchart: {
+      htmlLabels: true,
+      curve: 'basis',
+      rankSpacing: 75,
+      nodeSpacing: 50,
+      padding: 20
+    }
+  });
+
+  // ========== ダイアグラム定義 ==========
+
+  const DIAGRAMS = {
+
+    // ──── 気管支拡張症 ────
+    bronch: `flowchart TD
+      classDef ST    fill:#1b5e20,stroke:none,color:#fff,font-weight:bold
+      classDef DEC   fill:#e8f5e9,stroke:#43a047,stroke-width:2px,color:#1b5e20
+      classDef TRIAL fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20,font-weight:bold
+      classDef NOTE  fill:#f1f8e9,stroke:#7cb342,stroke-width:1.5px,stroke-dasharray:4,color:#33691e
+      classDef NG    fill:#fafafa,stroke:#bdbdbd,color:#9e9e9e
+
+      S([" 気管支拡張症\n 患者 "]):::ST
+      S --> Q2
+
+      Q2{"嚢胞性線維症（CF）\nなし？"}:::DEC
+      Q2 -- "CF なし" --> Q3
+      Q2 -- "CF あり" --> N_CF["両試験 対象外\n（CF は除外基準）"]:::NG
+
+      Q3{"過去12ヶ月に\n増悪 ≥ 2回（抗生物質要）\nまたは 入院増悪 ≥ 1回？"}:::DEC
+      Q3 -- YES --> Q_AIR
+      Q3 -- "NO（0〜1回）" --> Q4
+
+      Q4{"QOL-B RSS < 50？\n（GSK 試験 低活動性基準）"}:::DEC
+      Q4 -- YES --> Q_GSK_AGE
+      Q4 -- NO --> N3["組み入れ基準を満たさず"]:::NG
+
+      Q_AIR{"年齢 ≥ 12歳\nかつ 体重 ≥ 35 kg？\n（AIRTIVITY 基準）"}:::DEC
+      Q_AIR -- YES --> AIR["✅【治験】AIRTIVITY 治験\n━━━━━━━━━━━━━━━━━━━━━━━\n💊 BI 1291583（カテプシンC阻害薬・経口）\n👤 CRC: パレクセル 樋口 PHS 8335\n📋 Phase III / 二重盲検プラセボ対照\n⏱ 観察期間: 52〜76週\n＊ 喀痰培養（PA検査）あり（成人）"]:::TRIAL
+      Q_AIR -- "NO（基準外）" --> N_AIR["AIRTIVITY\n年齢・体重 基準外"]:::NG
+      AIR --> Q_GSK_AGE
+
+      Q_GSK_AGE{"年齢 18〜85歳\nかつ BMI 18〜35 kg/m²？"}:::DEC
+      Q_GSK_AGE -- YES --> Q_GSK2
+      Q_GSK_AGE -- NO --> N_GSK1["GSK223977\n年齢・BMI 基準外"]:::NG
+
+      Q_GSK2{"非喫煙者または禁煙 ≥ 6ヶ月\nかつ 気管支拡張後 FEV1 ≥ 30%？"}:::DEC
+      Q_GSK2 -- YES --> GSKINFO
+      Q_GSK2 -- NO --> N_GSK2["GSK223977\n喫煙・FEV1 基準外"]:::NG
+
+      GSKINFO["★ GSK223977 追加除外確認\n━━━━━━━━━━━━━━━━━━━━━━━━━━━\n以下がないことを確認\n✖ 主診断が喘息または COPD\n✖ 活動性 NTM 感染・肺感染症\n✖ 活動性結核（未治療潜在性含む）\n✖ 長時間酸素療法（1日 >12時間）\n✖ 4週間以内の急性下気道感染\n✖ 抗がん薬・全身免疫抑制剤（6ヶ月以内）\n✖ 生物学的製剤（12週以内）\n✖ マクロライド/吸入抗生物質 新規投与（6ヶ月以内）\n━━━━━━━━━━━━━━━━━━━━━━━━━━━\n【必要条件】自然喀痰 採取可能なこと"]:::NOTE
+      GSKINFO --> GSK["✅【治験】GSK223977 試験\n━━━━━━━━━━━━━━━━━━━━━━━\n💊 GSK3862995B（抗 IL-33 抗体・皮下注 SC）\n👤 GSK / 治験番号 223977\n📋 Phase II / 二重盲検 / 3アーム\n（300 mg / 600 mg / プラセボ Q12W 最大4回）"]:::TRIAL`,
+
+    // ──── COPD ────
+    copd: `flowchart TD
+      classDef ST    fill:#0d47a1,stroke:none,color:#fff,font-weight:bold
+      classDef HDR   fill:#e3f2fd,stroke:#1976d2,stroke-width:1px,color:#0d47a1,font-style:italic
+      classDef DEC   fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#0d47a1
+      classDef TRIAL fill:#bbdefb,stroke:#1565c0,stroke-width:2px,color:#0d47a1,font-weight:bold
+      classDef NG    fill:#fafafa,stroke:#bdbdbd,color:#9e9e9e
+
+      S([" COPD 患者\n（FEV1/FVC ＜ 0.70）"]):::ST
+      S --> INFO["各基準は独立して評価 — 複数試験に同時該当あり"]:::HDR
+
+      INFO --> C1
+      C1{"① ICS 治療歴なし\n　かつ 心肺リスクあり？\n　（心血管疾患・喘息合併など）"}:::DEC
+      C1 -- "✔ 該当" --> T1["✅  THARROS 試験\n━━━━━━━━━━━━━━━━━━━━━━━\n💊 ビレーズトリ\n　（ICS / LABA / LAMA トリプル吸入）\n👤 CRC: 山下 PHS 8964\n📋 COPD ICS-naive + 心肺リスク例"]:::TRIAL
+      C1 --> C2
+
+      C2{"② 増悪歴あり\n　かつ CAT スコア ＞ 10？"}:::DEC
+      C2 -- "✔ 該当" --> T2["✅  MIRANDA 試験\n━━━━━━━━━━━━━━━━━━━━━━━\n💊 トラゾキマブ（抗TSLP抗体）\n👤 担当: 川崎 PHS 8354\n📋 COPD 増悪歴あり / 症状スコア高値"]:::TRIAL
+      C2 --> C3
+
+      C3{"③ 高頻度増悪歴あり\n　かつ mMRC ≥ 2\n　かつ 維持治療 ≥ 12ヶ月？"}:::DEC
+      C3 -- "✔ 該当" --> T3["✅  ARNASA 試験\n━━━━━━━━━━━━━━━━━━━━━━━\n💊 Astegolimab（抗IL-33抗体）\n👤 担当: 鮫島 PHS 8346 / 北側 PHS 8337\n📋 高頻度増悪 + 高症状負担 COPD"]:::TRIAL
+      C3 --> C4
+
+      C4{"④ 増悪 ≥ 2回/年\n　または\n　重症増悪（入院）≥ 1回？"}:::DEC
+      C4 -- "✔ 該当" --> T4["✅  PRESTO 試験\n━━━━━━━━━━━━━━━━━━━━━━━\n💊 AZD6793（経口 IRAK4 阻害薬）\n　 IL-33 等のシグナルをブロック\n📋 増悪 ≥ 2回/年\n　 または 重症増悪（入院）≥ 1回\n👤 担当医に確認"]:::TRIAL
+      C4 -- "該当なし" --> NONE["現在の登録中試験\nいずれも非該当\n→ 担当医に確認"]:::NG`,
+
+    // ──── 感染症 ────
+    viral: `flowchart TD
+      classDef ST    fill:#4a148c,stroke:none,color:#fff,font-weight:bold
+      classDef DEC   fill:#f3e5f5,stroke:#8e24aa,stroke-width:2px,color:#4a148c
+      classDef TRIAL fill:#e1bee7,stroke:#6a1b9a,stroke-width:2px,color:#4a148c,font-weight:bold
+      classDef NG    fill:#fafafa,stroke:#bdbdbd,color:#9e9e9e
+
+      S([" 感染症（肺炎）\n 患者 "]):::ST
+      S --> Q1
+
+      Q1{"ウイルス性肺炎\nと診断（疑い含む）？\n＊細菌性肺炎は除外"}:::DEC
+      Q1 -- YES --> Q2
+      Q1 -- "NO: 細菌性肺炎等" --> N1["TILIA 試験 対象外\n（ウイルス性のみ）"]:::NG
+
+      Q2{"呼吸不全\n（低酸素血症）を伴う？"}:::DEC
+      Q2 -- YES --> Q3
+      Q2 -- "NO: 軽症" --> N2["軽症例は現在対象外"]:::NG
+
+      Q3{"悪性腫瘍\nなし？"}:::DEC
+      Q3 -- "YES（除外なし）" --> Q4
+      Q3 -- "NO（悪性腫瘍あり）" --> N3["TILIA 試験\n除外基準に該当"]:::NG
+
+      Q4{"自己免疫疾患\nなし？"}:::DEC
+      Q4 -- "YES（除外なし）" --> TR
+      Q4 -- "NO（自己免疫疾患あり）" --> N4["TILIA 試験\n除外基準に該当"]:::NG
+
+      TR["✅  TILIA 試験\n━━━━━━━━━━━━━━━━━━━━━━━\n💊 Tozorakimab（抗IL-33抗体）\n👤 CRC: EPLink 富永 PHS 8345\n📋 ウイルス性肺炎 + 呼吸不全の成人\n⛔ 除外: 悪性腫瘍 / 自己免疫疾患"]:::TRIAL`,
+
+    // ──── NSCLC ────
+    nsclc: `flowchart TD
+      classDef ST    fill:#b71c1c,stroke:none,color:#fff,font-weight:bold
+      classDef DEC   fill:#fff8e1,stroke:#f9a825,stroke-width:2px,color:#4e342e
+      classDef TRIAL fill:#fce4ec,stroke:#c62828,stroke-width:2.5px,color:#880e4f,font-weight:bold
+      classDef STUDY fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#0d47a1,font-weight:bold
+      classDef NOTE  fill:#fff3e0,stroke:#ff8f00,stroke-width:1px,stroke-dasharray:5,color:#bf360c
+      classDef NG    fill:#fafafa,stroke:#bdbdbd,color:#9e9e9e
+
+      S([" NSCLC\n 患者 "]):::ST
+      S --> CONTACT
+      CONTACT["📞 進行期 NSCLC 診断時は\n　 まず治験担当者へ連絡し\n　 スクリーニングを開始\n─────────────────────────\n　 🔹 黒木 PHS 8343\n　 🔹 栃原 PHS 8354"]:::NOTE
+      CONTACT --> Q0
+
+      Q0{"非扁平上皮？\n（腺癌 / 大細胞癌 等）"}:::DEC
+      Q0 -- YES --> Q2
+      Q0 -- "NO: 扁平上皮" --> SCCQ1
+
+      SCCQ1{"一次治療\n（未治療）？"}:::DEC
+      SCCQ1 -- "YES / 未治療" --> SCCPDL{"PD-L1 > 1%？"}:::DEC
+      SCCPDL -- YES --> ARTEMIDE02["✅【治験】ARTEMIDE-02\n━━━━━━━━━━━━━━━━━━━━━━━\n💊 Rilvegostoig vs Pembrolizumab\n扁平上皮癌 / PD-L1 > 1% / 一次治療\n👤 確認: 井上Dr・海老Dr"]:::TRIAL
+      SCCPDL -- "NO / 陰性" --> SCC["扁平上皮がん PD-L1 陰性\n現在 対象試験なし\n（担当医・井上Dr・海老Drに確認）"]:::NG
+      SCCQ1 -- "NO / 既治療" --> SCCOTHER["既治療 扁平上皮がん\n現在 対象試験なし\n（担当医に確認）"]:::NG
+
+      Q2{"EGFR atypical /\nuncommon 変異あり？\n例: G719X, S768I,\n　　L861Q, Exon20 ins 等"}:::DEC
+      Q2 -- YES --> AGEHA["✅【治験】AGEHA 試験\n━━━━━━━━━━━━━━━━━━━━━━━\n💊 アミラゼ vs AFA\n　（非典型的EGFR変異対象）\n👤 担当: 海老先生"]:::TRIAL
+      Q2 -- NO --> Q3
+
+      Q3{"EGFR sensitizing 変異 /\nALK 転座 あり？\n（Exon19del, L858R,\n　ALK融合遺伝子 等）"}:::DEC
+      Q3 -- "YES → TKI 適応" --> STD["TKI 標準治療\n（今回の試験 対象外）"]:::NG
+      Q3 -- "なし" --> Q4
+
+      Q4{"全身療法歴なし\n（一次治療）？"}:::DEC
+      Q4 -- "YES / 未治療" --> PDLCHECK{"PD-L1\n発現レベルは？"}:::DEC
+      Q4 -- "NO / 既治療" --> OTHER["既治療 NSCLC\n現在 対象試験なし\n（担当医に確認）"]:::NG
+
+      PDLCHECK -- "≥ 50%\n（高発現）" --> TROPION["✅【治験】TROPION-Lung10\n━━━━━━━━━━━━━━━━━━━━━━━\n💊 Rilvegostoig\n　（抗PD-1 / TIGIT 二重特異性抗体）\n👤 担当: PHS 8343 / 8359\n📋 PD-L1 TC ≥ 50% / 未治療 NSCLC"]:::TRIAL
+      PDLCHECK -- "1〜49%\n（低〜中等度発現）" --> ARTEMIDE03["✅【治験】ARTEMIDE-03\n━━━━━━━━━━━━━━━━━━━━━━━\n💊 Rilvegostoig vs Pembrolizumab\n非扁平上皮 NSCLC / PD-L1 1〜49%\n一次治療 / 未治療\n👤 確認: 井上Dr・海老Dr"]:::TRIAL
+      PDLCHECK -- "陰性\n（< 1%）" --> BENONLY["✅【治験】BENITO study\n━━━━━━━━━━━━━━━━━━━━━━━\n💊 MB12（PembroBS）＋ 化学療法\nTPSスコア問わず\n👤 担当: 栃原 PHS 8354"]:::TRIAL
+
+      TROPION --> STUDYNOTE
+      ARTEMIDE03 --> STUDYNOTE
+      BENONLY --> STUDYNOTE
+      STUDYNOTE["── 治験登録優先・治験非該当時は下記 臨床試験 を検討 ──"]:::NOTE
+
+      STUDYNOTE --> QOLIGO
+      QOLIGO{"転移病巣 ＜ 3個\nかつ 全て局所治療可能？\n（オリゴメタスタシス）"}:::DEC
+      QOLIGO -- "YES\n（オリゴ）" --> JOLIGO["✅【臨床試験】260203 J-OLIGO 試験\n━━━━━━━━━━━━━━━━━━━━━━━\n局所療法 vs 全身療法の比較試験\n転移 ＜ 3個 / 全て局所治療可能\n👤 担当: 海老先生"]:::STUDY
+      QOLIGO -- "NO / 多発転移" --> QTTF
+
+      QTTF{"TTF-1 陰性？"}:::DEC
+      QTTF -- YES --> TURNING["✅【臨床試験】TURNING 試験\n━━━━━━━━━━━━━━━━━━━━━━━\n💊 nabPTX based POSEIDON レジメン\nNSCLC / TTF-1 陰性 / 未治療\n👤 担当: 井上先生"]:::STUDY
+      QTTF -- "NO（TTF-1 陽性）" --> STDEND["標準治療\n（担当医に確認）"]:::NG`,
+
+    // ──── 睡眠時無呼吸症候群 ────
+    sas: `flowchart TD
+      classDef ST    fill:#e65100,stroke:none,color:#fff,font-weight:bold
+      classDef DEC   fill:#fff3e0,stroke:#fb8c00,stroke-width:2px,color:#bf360c
+      classDef TRIAL fill:#ffe0b2,stroke:#ef6c00,stroke-width:2.5px,color:#bf360c,font-weight:bold
+      classDef NOTE  fill:#fff9c4,stroke:#f9a825,stroke-width:1px,stroke-dasharray:5,color:#f57f17
+      classDef NG    fill:#fafafa,stroke:#bdbdbd,color:#9e9e9e
+
+      S([" SAS 患者\n（睡眠時無呼吸症候群）"]):::ST
+      S --> Q_BMI
+
+      Q_BMI{"BMI ＞ 27？\n（肥満基準）"}:::DEC
+      Q_BMI -- YES --> REFER
+      Q_BMI -- "NO（BMI ≤ 27）" --> N_BMI["BMI ≤ 27\n対象外"]:::NG
+
+      REFER["📋 吉村Dr へ紹介\n━━━━━━━━━━━━━━━━━━━━━━━\n★ BMI ＞ 27 の SAS 患者は\n　まず吉村先生へ連絡・紹介\n　SAS スクリーニングを開始\n【共通条件（紹介時に確認）】\n　✔ SAS 確定診断済（睡眠検査）\n　✔ 糖尿病（DM）なし\n　✔ BMI ＞ 27\n👤 担当: 吉村Dr（内分泌内科）"]:::NOTE
+      REFER --> CPAP
+
+      CPAP{"CPAP 治療\n使用中？"}:::DEC
+      CPAP -- "YES（使用中）" --> CPAP_Y["✅ 3社治験 ─ CPAP 使用者アーム\n━━━━━━━━━━━━━━━━━━━━━━━\n🏢 AMGEN 試験\n🏢 Eli Lilly 試験\n🏢 Novo Nordisk 試験\n　（1社は CPAP 有 / 無 別アーム）\n👤 担当: 吉村Dr"]:::TRIAL
+      CPAP -- "NO（非使用）" --> CPAP_N["✅ 3社治験 ─ CPAP 非使用者アーム\n━━━━━━━━━━━━━━━━━━━━━━━\n🏢 AMGEN 試験\n🏢 Eli Lilly 試験\n🏢 Novo Nordisk 試験\n　（1社は CPAP 有 / 無 別アーム）\n👤 担当: 吉村Dr"]:::TRIAL`
+  };
+
+  // ========== レンダリング ==========
+
+  async function renderAll() {
+    for (const [key, code] of Object.entries(DIAGRAMS)) {
+      const container = document.getElementById('content-' + key);
+      try {
+        const id = 'mermaid-' + key + '-' + Date.now();
+        const { svg } = await mermaid.render(id, code);
+        container.innerHTML = svg;
+        // SVGにレスポンシブ設定
+        const svgEl = container.querySelector('svg');
+        if (svgEl) {
+          svgEl.style.maxWidth = '100%';
+          svgEl.style.height = 'auto';
+          if (!svgEl.getAttribute('viewBox')) {
+            const w = svgEl.getAttribute('width') || '800';
+            const h = svgEl.getAttribute('height') || '600';
+            svgEl.setAttribute('viewBox', `0 0 ${w} ${h}`);
+          }
+        }
+      } catch (e) {
+        container.innerHTML = `<p style="color:red;padding:20px">⚠️ 図の読み込みエラー: ${e.message}</p>`;
+        console.error('Mermaid error for', key, e);
+      }
+    }
+  }
+
+  // ========== タブ切り替え ==========
+
+  function switchTab(name) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('panel-' + name).classList.add('active');
+    document.querySelector('.tab-btn.' + name).classList.add('active');
+  }
+
+  // 初期化
+  document.addEventListener('DOMContentLoaded', renderAll);
+</script>
+
+</body>
+</html>
