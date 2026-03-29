@@ -68,11 +68,13 @@
     .tab-btn.viral  { --c: #6a1b9a; }
     .tab-btn.nsclc  { --c: #b71c1c; }
     .tab-btn.sas    { --c: #e65100; }
+    .tab-btn.sclc   { --c: #00695c; }
     .tab-btn.bronch.active { color: #2e7d32; border-color: #2e7d32; }
     .tab-btn.copd.active   { color: #1565c0; border-color: #1565c0; }
     .tab-btn.viral.active  { color: #6a1b9a; border-color: #6a1b9a; }
     .tab-btn.nsclc.active  { color: #b71c1c; border-color: #b71c1c; }
     .tab-btn.sas.active    { color: #e65100; border-color: #e65100; }
+    .tab-btn.sclc.active   { color: #00695c; border-color: #00695c; }
 
     /* ── コンテンツ ── */
     .tab-panel {
@@ -99,6 +101,7 @@
     .note-bar.red    { background: #ffebee; border-left: 4px solid #c62828; color: #b71c1c; }
     .note-bar.purple { background: #f3e5f5; border-left: 4px solid #7b1fa2; color: #4a148c; }
     .note-bar.green  { background: #e8f5e9; border-left: 4px solid #388e3c; color: #1b5e20; }
+    .note-bar.teal   { background: #e0f2f1; border-left: 4px solid #00897b; color: #004d40; }
 
     /* ダイアグラムコンテナ */
     .diagram-wrap {
@@ -168,7 +171,8 @@
 
 <!-- ===== TAB BAR ===== -->
 <div class="tab-bar">
-  <button class="tab-btn nsclc active"   onclick="switchTab('nsclc')" >🔴 肺がん（NSCLC）</button>
+  <button class="tab-btn nsclc active"   onclick="switchTab('nsclc')" >🔴 非小細胞肺がん（NSCLC）</button>
+  <button class="tab-btn sclc"           onclick="switchTab('sclc')"  >🟤 小細胞肺がん（SCLC）</button>
   <button class="tab-btn copd"           onclick="switchTab('copd')"  >🔵 COPD</button>
   <button class="tab-btn bronch"         onclick="switchTab('bronch')">🟢 気管支拡張症</button>
   <button class="tab-btn viral"          onclick="switchTab('viral')" >🟣 感染症（肺炎）</button>
@@ -216,6 +220,15 @@
     <div><strong>睡眠時無呼吸症候群（SAS）3試験</strong>（AMGEN / Eli Lilly / Novo Nordisk 各1試験）。共通条件: SAS確定診断・糖尿病なし・BMI ≥ 27。<strong>肥満SAS患者は吉村Dr紹介スキームで対応</strong>。なお1社は CPAP 使用有無で別アームを設けています。</div>
   </div>
   <div class="diagram-wrap" id="content-sas"><div class="loading">⏳ 読み込み中...</div></div>
+</div>
+
+<!-- SCLC -->
+<div id="panel-sclc" class="tab-panel">
+  <div class="note-bar teal">
+    <span>ℹ️</span>
+    <div>対象試験: <strong>TSUBAKI試験 1件</strong>（ADRIATICリアルワールドレジストリ）。限局型小細胞肺がん（LD-SCLC）に対する化学放射線療法後のデュルバルマブ（イミフィンジ）維持療法について、実地臨床での有効性・安全性を評価する多施設共同前向き観察研究。AstraZeneca・日本呼吸器学会・日本肺癌学会共同主催。</div>
+  </div>
+  <div class="diagram-wrap" id="content-sclc"><div class="loading">⏳ 読み込み中...</div></div>
 </div>
 
 <!-- ===== FOOTER ===== -->
@@ -370,11 +383,15 @@
       SCCQ1 -- "NO / 既治療" --> SCCOTHER["既治療 扁平上皮がん\n現在 対象試験なし\n（担当医に確認）"]:::NG
 
       Q2{"EGFR atypical /\nuncommon 変異あり？\n例: G719X, S768I,\n　　L861Q, Exon20 ins 等"}:::DEC
-      Q2 -- YES --> AGEHA["✅【治験】AGEHA 試験\n━━━━━━━━━━━━━━━━━━━━━━━\n💊 アミラゼ vs AFA\n　（非典型的EGFR変異対象）\n👤 担当: 海老先生"]:::TRIAL
+      Q2 -- YES --> AGEHA["✅【臨床試験】AGEHA 試験\n━━━━━━━━━━━━━━━━━━━━━━━\n💊 アミラゼ vs AFA\n　（非典型的EGFR変異対象）\n👤 担当: 海老先生"]:::STUDY
+      AGEHA --> SPIRAL20["✅【臨床試験】SPIRAL-RACER20\n━━━━━━━━━━━━━━━━━━━━━━━\n💊 アミバンタマブ（ライブリバント）\n　 ＋ カルボプラチン ＋ ペメトレキセド\nEGFR exon20ins 陽性腺癌 前向き観察研究\n📋 jRCT1071250104\n👤 担当: 井上先生"]:::STUDY
       Q2 -- NO --> Q3
 
       Q3{"EGFR sensitizing 変異 /\nALK 転座 あり？\n（Exon19del, L858R,\n　ALK融合遺伝子 等）"}:::DEC
-      Q3 -- "YES → TKI 適応" --> STD["TKI 標準治療\n（今回の試験 対象外）"]:::NG
+      Q3 -- "YES: EGFR 感受性変異" --> STD["TKI 標準治療\n（今回の試験 対象外）"]:::NG
+      Q3 -- "YES: ALK 転座" --> Q3ALK{"脳転移あり\n（頭部 MRI で ≥ 5mm）\nかつ ALK-TKI 未治療？"}:::DEC
+      Q3ALK -- "YES" --> LOBSTER["✅【臨床試験】LOBSTER 試験\n━━━━━━━━━━━━━━━━━━━━━━━\n💊 ロルラチニブ（ローブレナ）100mg/日\nALK+ NSCLC 脳転移あり 前向き観察研究\n主要評価項目: 頭蓋内 CR 率\n📋 UMIN000056248\n👤 担当: 海老先生"]:::STUDY
+      Q3ALK -- "NO（脳転移なし\nまたは 既治療）" --> STD
       Q3 -- "なし" --> Q4
 
       Q4{"全身療法歴なし\n（一次治療）？"}:::DEC
@@ -419,7 +436,29 @@
 
       CPAP{"CPAP 治療\n使用中？"}:::DEC
       CPAP -- "YES（使用中）" --> CPAP_Y["✅ 3社治験 ─ CPAP 使用者アーム\n━━━━━━━━━━━━━━━━━━━━━━━\n🏢 AMGEN 試験\n🏢 Eli Lilly 試験\n🏢 Novo Nordisk 試験\n　（1社は CPAP 有 / 無 別アーム）\n👤 担当: 吉村Dr"]:::TRIAL
-      CPAP -- "NO（非使用）" --> CPAP_N["✅ 3社治験 ─ CPAP 非使用者アーム\n━━━━━━━━━━━━━━━━━━━━━━━\n🏢 AMGEN 試験\n🏢 Eli Lilly 試験\n🏢 Novo Nordisk 試験\n　（1社は CPAP 有 / 無 別アーム）\n👤 担当: 吉村Dr"]:::TRIAL`
+      CPAP -- "NO（非使用）" --> CPAP_N["✅ 3社治験 ─ CPAP 非使用者アーム\n━━━━━━━━━━━━━━━━━━━━━━━\n🏢 AMGEN 試験\n🏢 Eli Lilly 試験\n🏢 Novo Nordisk 試験\n　（1社は CPAP 有 / 無 別アーム）\n👤 担当: 吉村Dr"]:::TRIAL`,
+
+    // ──── SCLC ────
+    sclc: `flowchart TD
+      classDef ST    fill:#004d40,stroke:none,color:#fff,font-weight:bold
+      classDef DEC   fill:#e0f2f1,stroke:#00897b,stroke-width:2px,color:#004d40
+      classDef STUDY fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#0d47a1,font-weight:bold
+      classDef NG    fill:#fafafa,stroke:#bdbdbd,color:#9e9e9e
+
+      S([" 小細胞肺がん\n（SCLC）患者 "]):::ST
+      S --> Q1
+
+      Q1{"限局型 SCLC\n（Limited Disease）？\nStage I〜III /\n放射線照射範囲内"}:::DEC
+      Q1 -- "YES（LD-SCLC）" --> Q2
+      Q1 -- "NO（進展型 ED-SCLC）" --> NG1["進展型 SCLC\n現在 対象試験なし\n（担当医に確認）"]:::NG
+
+      Q2{"化学放射線療法（CRT）\n完遂後\nかつ 病勢進行なし？"}:::DEC
+      Q2 -- YES --> Q3
+      Q2 -- "NO（未完了または進行）" --> NG2["CRT 未完了\nまたは 病勢進行\n→ 対象外"]:::NG
+
+      Q3{"PS 0〜2\nかつ 重篤な自己免疫疾患\n・活動性感染症なし？"}:::DEC
+      Q3 -- "YES" --> TSUBAKI["✅【臨床試験】TSUBAKI 試験\n━━━━━━━━━━━━━━━━━━━━━━━\n💊 デュルバルマブ（イミフィンジ）\n　 1500mg Q4W（最大 24ヶ月）\n📋 ADRIATICリアルワールドレジストリ\n　 LD-SCLC / CRT後 維持療法\n🏥 約40施設・225例登録予定\n👤 担当: 海老先生"]:::STUDY
+      Q3 -- "NO（除外基準に該当）" --> NG3["除外基準に該当\n（担当医に確認）"]:::NG`
   };
 
   // ========== レンダリング ==========
