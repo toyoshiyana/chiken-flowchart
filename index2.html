@@ -484,11 +484,11 @@
       S([" SAS 患者\n（睡眠時無呼吸症候群）"]):::ST
       S --> Q_BMI
 
-      Q_BMI{"BMI ＞ 27？\n（肥満基準）"}:::DEC
+      Q_BMI{"BMI ≧ 27？\n（肥満基準）"}:::DEC
       Q_BMI -- YES --> REFER
-      Q_BMI -- "NO（BMI ≤ 27）" --> N_BMI["BMI ≤ 27\n対象外"]:::NG
+      Q_BMI -- "NO（BMI < 27）" --> N_BMI["BMI < 27\n対象外"]:::NG
 
-      REFER["📋 吉村Dr へ紹介\n━━━━━━━━━━━━━━━━━━━━━━━\n★ BMI ＞ 27 の SAS 患者は\n　まず吉村先生へ連絡・紹介\n　SAS スクリーニングを開始\n【共通条件（紹介時に確認）】\n　✔ SAS 確定診断済（睡眠検査）\n　✔ 糖尿病（DM）なし\n　✔ BMI ＞ 27\n👤 担当: 吉村Dr（内分泌内科）"]:::NOTE
+      REFER["📋 吉村Dr へ紹介\n━━━━━━━━━━━━━━━━━━━━━━━\n★ BMI ＞ 27 の SAS 患者は\n　まず吉村先生へ連絡・紹介\n　SAS スクリーニングを開始\n【共通条件（紹介時に確認）】\n　✔ SAS 確定診断済（睡眠検査）\n　✔ 糖尿病（DM）なし\n　✔ BMI ＞ 27\n👤 担当: 吉村Dr"]:::NOTE
       REFER --> CPAP
 
       CPAP{"CPAP 治療\n使用中？"}:::DEC
